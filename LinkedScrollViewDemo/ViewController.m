@@ -29,7 +29,8 @@
 }
 
 - (void)setupScrollView {
-    LinkedScrollView *linkedScrollView = [[LinkedScrollView alloc] initWithStyle:LinkedScrollStyleDragHeaderToRefresh];
+    LinkedScrollView *linkedScrollView = [[LinkedScrollView alloc] initWithStyle:LinkedScrollStyleDragSubSrollToRefresh];
+    linkedScrollView.disableHeaderUserDrag = YES;
     _scrollView = linkedScrollView;
     linkedScrollView.frame = self.view.bounds;
     linkedScrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
@@ -101,6 +102,7 @@
 - (void)setupMenuView:(NSArray<NSString *> *)titles {
     UIView *menuView = [UIView new];
     _menuView = menuView;
+    menuView.hidden = YES;
     menuView.backgroundColor = [UIColor grayColor];
     [self.view addSubview:menuView];
     menuView.translatesAutoresizingMaskIntoConstraints = NO;

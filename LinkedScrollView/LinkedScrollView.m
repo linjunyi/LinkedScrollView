@@ -41,6 +41,7 @@ static void *kLinkedScrollContentOffsetContext = &kLinkedScrollContentOffsetCont
 @property (nonatomic, strong) NSHashTable<UIScrollView *> *linkedScrolls;
 @property (nonatomic, assign) NSInteger currentPage;
 @property (nonatomic, strong) NSNumber *floatViewHeight;
+@property (nonatomic, assign) CGFloat headerBottom;
 
 @end
 
@@ -74,15 +75,21 @@ static void *kLinkedScrollContentOffsetContext = &kLinkedScrollContentOffsetCont
     
     if (self.bounds.size.height > 0 && self.bounds.size.width > 0 && self.linkedHeader.bounds.size.height > 0) {
         CGFloat headerBottom = CGRectGetMaxY(self.linkedHeader.frame);
-        self.contentSize = CGSizeMake(self.contentSize.width,
-                                      headerBottom - _floatViewHeight.floatValue + self.bounds.size.height);
+        if (_headerBottom != headerBottom) {
+            _headerBottom = headerBottom;
+            self.contentSize = CGSizeMake(self.contentSize.width,
+                                          headerBottom - _floatViewHeight.floatValue + self.bounds.size.height);
+        }
         
         self.linkedFooter.delegate = nil;
         {
             CGFloat footerHeight = MAX(0, self.contentOffset.y + self.bounds.size.height - headerBottom);
-            self.linkedFooter.frame = CGRectMake(0, headerBottom, self.bounds.size.width, footerHeight);
-            self.linkedFooter.contentSize = CGSizeMake(_linkedContentViews.count * self.bounds.size.width, 0);
-            [self _setContentPage:_currentPage animated:NO];
+            if (footerHeight != self.linkedFooter.bounds.size.height) {
+                self.linkedFooter.frame = CGRectMake(0, headerBottom, self.bounds.size.width, footerHeight);
+            }
+            if (self.linkedFooter.contentOffset.x != CGRectGetWidth(self.bounds) * _currentPage) {
+                [self _setContentPage:_currentPage animated:NO];
+            }
         }
         self.linkedFooter.delegate = self;
     }
@@ -117,7 +124,7 @@ static void *kLinkedScrollContentOffsetContext = &kLinkedScrollContentOffsetCont
 #pragma mark - Observer
 
 - (void)_addLinkedObserverFor:(UIScrollView *)scrollView {
-    [scrollView addObserver:self forKeyPath:NSStringFromSelector(@selector(contentOffset)) options:NSKeyValueObservingOptionNew context:kLinkedScrollContentOffsetContext];
+    [scrollView addObserver:self forKeyPath:NSStringFromSelector(@selector(contentOffset)) options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:kLinkedScrollContentOffsetContext];
 }
 
 - (void)_removeAllLinkedObservers {
@@ -150,6 +157,12 @@ static void *kLinkedScrollContentOffsetContext = &kLinkedScrollContentOffsetCont
         if ([object isKindOfClass:[UIScrollView class]]) {
             UIScrollView *scrollView = (UIScrollView *)object;
             if (self.bounds.size.height == 0) {
+                return;
+            }
+            
+            NSValue *newValue = change[NSKeyValueChangeNewKey];
+            NSValue *oldValue = change[NSKeyValueChangeOldKey];
+            if ([newValue isEqualToValue:oldValue]) {
                 return;
             }
             
@@ -320,24 +333,12 @@ static void *kLinkedScrollContentOffsetContext = &kLinkedScrollContentOffsetCont
 }
 
 - (void)fixScrollForSelf {
-    CGFloat fixOffset = 0;
-    if (self.contentSize.height > self.frame.size.height) {
-        fixOffset = self.contentOffset.y + self.frame.size.height - self.contentSize.height;
-    }
-    BOOL linkage = NO;
-    if (fixOffset > 0) {
-        UIScrollView *scrollV = [self activeLinkedScroll];
-        if (scrollV) {
-            if (fixOffset + scrollV.contentOffset.y + scrollV.frame.size.height < scrollV.contentSize.height) {
-                //此处需触发keyPath回调，从而调用fixScrollForSelf修正self的contentOffset。
-                [scrollV setContentOffset:CGPointMake(scrollV.contentOffset.x, fixOffset+scrollV.contentOffset.y) animated:YES];
-                linkage = YES;
-            }
-        }
+    if (self.contentOffset.y > [self maxContentOffsetY]) {
+        [self noObserveUpdateOffset:CGPointMake(0, [self maxContentOffsetY]) forScrollView:self];
     }
     if (self.scrollBlock) {
         __weak typeof(self) weakSelf = self;
-        self.scrollBlock(weakSelf, linkage, [self shouldShowFloat]);
+        self.scrollBlock(weakSelf, NO, [self shouldShowFloat]);
     }
 }
 
@@ -354,9 +355,8 @@ static void *kLinkedScrollContentOffsetContext = &kLinkedScrollContentOffsetCont
         needFix = YES;
     }
     if (needFix) {
-        // linkedScroll 加速结束后，再将 _linkedScrolls 回复初始状态
-        if (linkedScroll.decelerating == NO) {
-            for (UIScrollView *scrollV in _linkedScrolls) {
+        for (UIScrollView *scrollV in _linkedScrolls) {
+            if (scrollV != linkedScroll) {
                 [self noObserveUpdateOffset:CGPointMake(scrollV.contentOffset.x, 0) forScrollView:scrollV];
             }
         }
