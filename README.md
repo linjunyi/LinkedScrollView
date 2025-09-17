@@ -21,7 +21,7 @@ A lightweight iOS component for **two-level scroll view linkage** with support f
 ## 🚀 Usage
 
 ### Quick Start
-```objc
+```
 - (void)setupScrollView {
     LinkedScrollView *linkedScrollView =
         [[LinkedScrollView alloc] initWithStyle:LinkedScrollStyleDragHeaderToRefresh];
@@ -56,6 +56,22 @@ A lightweight iOS component for **two-level scroll view linkage** with support f
         weakSelf.selectedIndex = pageIndex;
     };
 }
+```
+
+#### 使用childViewController的情况
+```
+    UIViewController *childCtrol1 = [self createChildCtrol];
+    [self addChildViewController:childCtrol1];
+    UIViewController *childCtrol2 = [self createChildCtrol];
+    [self addChildViewController:childCtrol2];
+    UIViewController *childCtrol3 = [self createChildCtrol];
+    [self addChildViewController:childCtrol3];
+    
+    [linkedScrollView setLinkedHeader:header floatViewHeight:@(FloatMenuViewHeight)];
+    [linkedScrollView setLinkedContentViews:@[childCtrol1.view, childCtrol2.view, childCtrol3.view]];
+    [linkedScrollView addLinkedScroll:childCtrol1.scrollView];
+    [linkedScrollView addLinkedScroll:childCtrol2.scrollView];
+    [linkedScrollView addLinkedScroll:childCtrol3.scrollView];
 ```
 
 
