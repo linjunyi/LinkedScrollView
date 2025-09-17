@@ -10,13 +10,11 @@ A lightweight iOS component for **two-level scroll view linkage** with support f
 
 ## 📸 Snapshots
 ### Style 1 ```LinkedScrollStyleDragSubSrollToRefresh```
-<video src="https://github.com/user-attachments/assets/540b1a66-7813-4502-bc19-be28aaeb76e0" controls="controls" width="360">
-https://github.com/user-attachments/assets/5d040965-b88d-466d-be3a-0724c4979b2b
+<video src="https://github.com/user-attachments/assets/5d040965-b88d-466d-be3a-0724c4979b2b" controls="controls" width="360">
 </video>
 
 ### Style 2 ```LinkedScrollStyleDragHeaderToRefresh```
-<video src="https://github.com/user-attachments/assets/540b1a66-7813-4502-bc19-be28aaeb76e0" controls="controls" width="360">
-https://github.com/user-attachments/assets/e204e8ef-598a-4c53-9f86-ea3129abfc70
+<video src="https://github.com/user-attachments/assets/e204e8ef-598a-4c53-9f86-ea3129abfc70" controls="controls" width="360">
 </video> 
 
 
